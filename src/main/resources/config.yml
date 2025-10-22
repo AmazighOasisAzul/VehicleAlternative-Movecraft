@@ -1,0 +1,217 @@
+# VehicleAlternative Configuration
+# A vanilla-friendly alternative to Movecraft for vehicle modifications
+# All speeds are multipliers of the default vanilla speed (1.0 = vanilla, 2.0 = double speed, etc.)
+
+# =====================
+# Global Settings
+# =====================
+global:
+  # Enable/disable the entire plugin
+  enabled: true
+  
+  # Debug mode - prints additional info to console
+  debug: false
+  
+  # Per-world settings - override vehicle settings for specific worlds
+  # Set to empty map {} if you don't want per-world settings
+  per-world-overrides: {}
+    # Example:
+    # world_nether:
+    #   horses:
+    #     speed-multiplier: 2.0
+    # world_the_end:
+    #   boats:
+    #     enabled: false
+
+# =====================
+# Horse Settings
+# =====================
+horses:
+  # Enable/disable horse modifications
+  enabled: true
+  
+  # Speed multiplier for horses (vanilla is 1.0)
+  speed-multiplier: 1.5
+  
+  # Jump height multiplier (vanilla is 1.0)
+  jump-multiplier: 1.2
+  
+  # Minimum speed (even slow horses get this multiplier)
+  min-speed-multiplier: 1.2
+  
+  # Maximum speed (cap for fast horses)
+  max-speed-multiplier: 2.5
+  
+  # Apply to donkeys and mules too
+  apply-to-donkeys: true
+  apply-to-mules: true
+  
+  # Require permission to use modified speeds
+  require-permission: false
+
+# =====================
+# Boat Settings
+# =====================
+boats:
+  # Enable/disable boat modifications
+  enabled: true
+  
+  # Speed settings
+  speed:
+    # Speed multiplier in water (vanilla is 1.0)
+    water-multiplier: 1.8
+    
+    # Speed multiplier on ice (vanilla is 1.0)
+    ice-multiplier: 2.5
+    
+    # Speed multiplier on land (if climbing is enabled)
+    land-multiplier: 0.8
+  
+  # Boat climbing mechanics
+  climbing:
+    # Enable boats to climb up blocks
+    enabled: true
+    
+    # Allow climbing outside of water
+    allow-on-land: true
+    
+    # Allow climbing up waterfalls and water blocks
+    allow-in-water: true
+    
+    # Maximum height boats can climb in a single action (blocks)
+    max-climb-height: 2
+    
+    # Vertical speed when climbing (blocks per second)
+    climb-speed: 0.5
+    
+    # Stamina system (optional - set to 0 to disable)
+    stamina:
+      enabled: false
+      max-stamina: 100
+      drain-per-climb: 10
+      regen-per-second: 5
+  
+  # Require permission to use modified boats
+  require-permission: false
+  
+  # Boat types to apply modifications to
+  types:
+    oak: true
+    spruce: true
+    birch: true
+    jungle: true
+    acacia: true
+    dark_oak: true
+    mangrove: true
+    cherry: true
+    bamboo: true
+
+# =====================
+# Minecart Settings
+# =====================
+minecarts:
+  # Enable/disable minecart modifications
+  enabled: true
+  
+  # Speed multiplier for minecarts (vanilla is 1.0)
+  speed-multiplier: 1.5
+  
+  # Maximum speed limit (vanilla is 1.0)
+  max-speed-multiplier: 3.0
+  
+  # Apply to powered rails
+  powered-rail-boost: 2.0
+  
+  # Require permission to use modified speeds
+  require-permission: false
+  
+  # Apply to specific minecart types
+  types:
+    regular: true
+    chest: true
+    furnace: true
+    hopper: true
+    tnt: true
+
+# =====================
+# Pig Settings
+# =====================
+pigs:
+  # Enable/disable pig riding modifications
+  enabled: true
+  
+  # Speed multiplier when riding pigs with carrot on stick
+  speed-multiplier: 1.3
+  
+  # Require permission
+  require-permission: false
+
+# =====================
+# Strider Settings
+# =====================
+striders:
+  # Enable/disable strider modifications
+  enabled: true
+  
+  # Speed multiplier in lava
+  lava-speed-multiplier: 1.4
+  
+  # Speed multiplier on land (normally very slow)
+  land-speed-multiplier: 1.0
+  
+  # Require permission
+  require-permission: false
+
+# =====================
+# Camel Settings (1.20+)
+# =====================
+camels:
+  # Enable/disable camel modifications
+  enabled: true
+  
+  # Speed multiplier
+  speed-multiplier: 1.3
+  
+  # Dash cooldown reduction (seconds, vanilla is 5.5s)
+  dash-cooldown: 4.0
+  
+  # Require permission
+  require-permission: false
+
+# =====================
+# Special Effects
+# =====================
+effects:
+  # Particle effects when using modified vehicles
+  particles:
+    enabled: true
+    type: "CLOUD"  # Particle type
+    amount: 3
+  
+  # Sound effects
+  sounds:
+    enabled: true
+    # Play sound when vehicle speed changes
+    on-speed-change: true
+    sound-type: "ENTITY_EXPERIENCE_ORB_PICKUP"
+    volume: 0.5
+    pitch: 1.0
+
+# =====================
+# Performance Settings
+# =====================
+performance:
+  # How often to check and update vehicle speeds (ticks, 20 = 1 second)
+  update-interval: 5
+  
+  # Maximum vehicles to process per tick
+  max-vehicles-per-tick: 50
+
+# =====================
+# Messages
+# =====================
+messages:
+  prefix: "&8[&bVehicleAlternative&8]&r "
+  reload-success: "&aConfiguration reloaded successfully!"
+  no-permission: "&cYou don't have permission to use this command."
+  plugin-info: "&bVehicleAlternative &7v${project.version} &8- &7Vanilla-friendly vehicle modifications"

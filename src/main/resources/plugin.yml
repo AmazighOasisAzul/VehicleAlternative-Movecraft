@@ -1,0 +1,31 @@
+name: VehicleAlternative
+version: '${project.version}'
+main: com.ryane.vehiclealternative.VehicleAlternative
+api-version: '1.20'
+author: Ryane
+description: A highly configurable vehicle speed modification plugin with boat climbing mechanics
+website: https://github.com/ryane/VehicleAlternative
+
+commands:
+  vehiclealternative:
+    description: Main plugin command
+    aliases: [va, vehicle]
+    permission: vehiclealternative.admin
+    usage: /<command> [reload|help]
+
+permissions:
+  vehiclealternative.admin:
+    description: Access to all plugin commands
+    default: op
+  vehiclealternative.use:
+    description: Ability to use modified vehicles
+    default: true
+  vehiclealternative.use.horse:
+    description: Use modified horse speeds
+    default: true
+  vehiclealternative.use.boat:
+    description: Use modified boat speeds and climbing
+    default: true
+  vehiclealternative.use.minecart:
+    description: Use modified minecart speeds
+    default: true
