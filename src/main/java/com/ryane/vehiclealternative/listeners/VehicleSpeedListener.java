@@ -29,30 +29,37 @@ public class VehicleSpeedListener implements Listener {
         this.config = plugin.getConfigManager();
     }
 
+    // -------------------------------------------------------------------------
+    // Mount events — apply ride-speed modifier
+    // -------------------------------------------------------------------------
+
     @EventHandler
     public void onVehicleEnter(VehicleEnterEvent event) {
         if (!config.isEnabled()) return;
-
+        if (!(event.getEntered() instanceof Player)) return;
+        Player player = (Player) event.getEntered();
         Entity vehicle = event.getVehicle();
-        Entity entered = event.getEntered();
-        if (!(entered instanceof Player)) return;
-        Player player = (Player) entered;
 
-        if (vehicle instanceof AbstractHorse) {
+        // Camel extends AbstractHorse in 1.20.1 — check it FIRST so it gets its
+        // own handler rather than falling into the generic horse handler.
+        if (vehicle instanceof Camel) {
+            handleCamelEnter((Camel) vehicle, player);
+        } else if (vehicle instanceof AbstractHorse) {
             handleHorseEnter((AbstractHorse) vehicle, player);
         } else if (vehicle instanceof Pig) {
             handlePigEnter((Pig) vehicle, player);
         } else if (vehicle instanceof Strider) {
             handleStriderEnter((Strider) vehicle, player);
-        } else if (vehicle instanceof Camel) {
-            handleCamelEnter((Camel) vehicle, player);
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Move events — velocity-based speed for boats & minecarts
+    // -------------------------------------------------------------------------
 
     @EventHandler
     public void onVehicleMove(VehicleMoveEvent event) {
         if (!config.isEnabled()) return;
-
         Vehicle vehicle = event.getVehicle();
         if (vehicle instanceof Boat) {
             handleBoatMove((Boat) vehicle);
@@ -69,7 +76,8 @@ public class VehicleSpeedListener implements Listener {
         if (!config.isHorsesEnabled()) return;
         if (horse instanceof Donkey && !config.isApplyToDonkeys()) return;
         if (horse instanceof Mule   && !config.isApplyToMules())   return;
-        if (config.isHorseRequirePermission() && !player.hasPermission("vehiclealternative.use.horse")) return;
+        if (config.isHorseRequirePermission()
+                && !player.hasPermission("vehiclealternative.use.horse")) return;
 
         double multiplier = config.getHorseSpeedMultiplier();
         multiplier = Math.max(multiplier, config.getHorseMinSpeed());
@@ -77,17 +85,14 @@ public class VehicleSpeedListener implements Listener {
 
         applyModifier(horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED),
                 VehicleConstants.SPEED_MODIFIER_UUID,
-                VehicleConstants.SPEED_MODIFIER_NAME,
-                multiplier);
+                VehicleConstants.SPEED_MODIFIER_NAME, multiplier);
 
         applyModifier(horse.getAttribute(Attribute.HORSE_JUMP_STRENGTH),
                 VehicleConstants.JUMP_MODIFIER_UUID,
-                VehicleConstants.JUMP_MODIFIER_NAME,
-                config.getHorseJumpMultiplier());
+                VehicleConstants.JUMP_MODIFIER_NAME, config.getHorseJumpMultiplier());
 
-        if (config.isDebug()) {
-            plugin.getLogger().info("Applied speed modifier (" + multiplier + "x) to horse ridden by " + player.getName());
-        }
+        if (config.isDebug())
+            plugin.getLogger().info("Horse speed x" + multiplier + " → " + player.getName());
     }
 
     // -------------------------------------------------------------------------
@@ -96,12 +101,11 @@ public class VehicleSpeedListener implements Listener {
 
     private void handlePigEnter(Pig pig, Player player) {
         if (!config.isPigsEnabled()) return;
-        if (config.isPigRequirePermission() && !player.hasPermission("vehiclealternative.use.pig")) return;
-
+        if (config.isPigRequirePermission()
+                && !player.hasPermission("vehiclealternative.use.pig")) return;
         applyModifier(pig.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED),
                 VehicleConstants.SPEED_MODIFIER_UUID,
-                VehicleConstants.SPEED_MODIFIER_NAME,
-                config.getPigSpeedMultiplier());
+                VehicleConstants.SPEED_MODIFIER_NAME, config.getPigSpeedMultiplier());
     }
 
     // -------------------------------------------------------------------------
@@ -110,9 +114,10 @@ public class VehicleSpeedListener implements Listener {
 
     private void handleStriderEnter(Strider strider, Player player) {
         if (!config.isStridersEnabled()) return;
-        if (config.isStriderRequirePermission() && !player.hasPermission("vehiclealternative.use.strider")) return;
+        if (config.isStriderRequirePermission()
+                && !player.hasPermission("vehiclealternative.use.strider")) return;
 
-        // Striders ride ON TOP of lava — check block below, not block at feet
+        // Striders float ON TOP of lava — check block below, not the block at feet
         Block below = strider.getLocation().getBlock().getRelative(BlockFace.DOWN);
         double multiplier = (below.getType() == Material.LAVA)
                 ? config.getStriderLavaSpeed()
@@ -120,8 +125,7 @@ public class VehicleSpeedListener implements Listener {
 
         applyModifier(strider.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED),
                 VehicleConstants.SPEED_MODIFIER_UUID,
-                VehicleConstants.SPEED_MODIFIER_NAME,
-                multiplier);
+                VehicleConstants.SPEED_MODIFIER_NAME, multiplier);
     }
 
     // -------------------------------------------------------------------------
@@ -130,16 +134,15 @@ public class VehicleSpeedListener implements Listener {
 
     private void handleCamelEnter(Camel camel, Player player) {
         if (!config.isCamelsEnabled()) return;
-        if (config.isCamelRequirePermission() && !player.hasPermission("vehiclealternative.use.camel")) return;
-
+        if (config.isCamelRequirePermission()
+                && !player.hasPermission("vehiclealternative.use.camel")) return;
         applyModifier(camel.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED),
                 VehicleConstants.SPEED_MODIFIER_UUID,
-                VehicleConstants.SPEED_MODIFIER_NAME,
-                config.getCamelSpeedMultiplier());
+                VehicleConstants.SPEED_MODIFIER_NAME, config.getCamelSpeedMultiplier());
     }
 
     // -------------------------------------------------------------------------
-    // Boat — velocity capped, not multiplied every tick
+    // Boat — target-based velocity (no per-tick multiplicative runaway)
     // -------------------------------------------------------------------------
 
     private void handleBoatMove(Boat boat) {
@@ -148,18 +151,17 @@ public class VehicleSpeedListener implements Listener {
         Entity passenger = boat.getPassengers().get(0);
         if (!(passenger instanceof Player)) return;
         Player player = (Player) passenger;
-        if (config.isBoatRequirePermission() && !player.hasPermission("vehiclealternative.use.boat")) return;
-
-        // Respect boats.types config
+        if (config.isBoatRequirePermission()
+                && !player.hasPermission("vehiclealternative.use.boat")) return;
         if (!config.getAllowedBoatTypes().contains(boat.getBoatType())) return;
 
         Vector velocity = boat.getVelocity();
-        double horizSpeed = Math.sqrt(velocity.getX() * velocity.getX() + velocity.getZ() * velocity.getZ());
-        if (horizSpeed < 0.01) return; // Stationary — nothing to boost
+        double horizSpeed = Math.sqrt(velocity.getX() * velocity.getX()
+                + velocity.getZ() * velocity.getZ());
+        if (horizSpeed < 0.01) return;
 
         Material blockType = boat.getLocation().getBlock().getType();
         double multiplier;
-
         if (blockType == Material.WATER || blockType == Material.BUBBLE_COLUMN) {
             multiplier = config.getBoatWaterSpeed();
         } else if (blockType == Material.ICE || blockType == Material.PACKED_ICE
@@ -171,8 +173,20 @@ public class VehicleSpeedListener implements Listener {
             return;
         }
 
-        // Target-based approach: only scale up when below the desired cap.
-        // This avoids exponential runaway from repeated multiplication every tick.
+        // Block-speed-boost stacks on top of the terrain multiplier
+        if (config.isBlockSpeedBoostEnabled() && config.isBlockSpeedApplyToVehicles()) {
+            if (config.isBlockSpeedRequirePermission()
+                    && !player.hasPermission("vehiclealternative.blockspeed")) {
+                // no extra boost
+            } else {
+                Block below = boat.getLocation().getBlock().getRelative(BlockFace.DOWN);
+                if (config.getBlockSpeedBlocks().contains(blockType)
+                        || config.getBlockSpeedBlocks().contains(below.getType())) {
+                    multiplier *= config.getBlockSpeedMultiplier();
+                }
+            }
+        }
+
         double targetSpeed = VehicleConstants.VANILLA_BOAT_WATER_SPEED * multiplier;
         if (horizSpeed < targetSpeed) {
             double scale = targetSpeed / horizSpeed;
@@ -183,66 +197,67 @@ public class VehicleSpeedListener implements Listener {
     }
 
     // -------------------------------------------------------------------------
-    // Minecart
+    // Minecart — normalized velocity, max-speed cap
     // -------------------------------------------------------------------------
 
     private void handleMinecartMove(Minecart minecart) {
         if (!config.isMinecartsEnabled()) return;
-
-        // Respect minecarts.types config
         if (!isMinecartTypeAllowed(minecart)) return;
-
         if (minecart.getPassengers().isEmpty()) return;
         Entity passenger = minecart.getPassengers().get(0);
         if (!(passenger instanceof Player)) return;
         Player player = (Player) passenger;
-        if (config.isMinecartRequirePermission() && !player.hasPermission("vehiclealternative.use.minecart")) return;
+        if (config.isMinecartRequirePermission()
+                && !player.hasPermission("vehiclealternative.use.minecart")) return;
 
         Vector velocity = minecart.getVelocity();
         double speed = velocity.length();
-        if (speed < 0.01) return; // normalize() on a zero vector yields NaN
+        if (speed < 0.01) return;
 
         double maxSpeed = config.getMinecartMaxSpeed();
-
-        // Apply powered-rail boost inside the cap calculation to avoid bypassing maxSpeed
         Material railType = minecart.getLocation().getBlock().getType();
         double boost = (railType == Material.POWERED_RAIL) ? config.getPoweredRailBoost() : 1.0;
 
-        double newSpeed = Math.min(speed * config.getMinecartSpeedMultiplier() * boost, maxSpeed);
+        // Block-speed-boost
+        double blockBoost = 1.0;
+        if (config.isBlockSpeedBoostEnabled() && config.isBlockSpeedApplyToVehicles()) {
+            boolean hasPerm = !config.isBlockSpeedRequirePermission()
+                    || player.hasPermission("vehiclealternative.blockspeed");
+            if (hasPerm) {
+                Block below = minecart.getLocation().getBlock().getRelative(BlockFace.DOWN);
+                if (config.getBlockSpeedBlocks().contains(below.getType())) {
+                    blockBoost = config.getBlockSpeedMultiplier();
+                }
+            }
+        }
+
+        double newSpeed = Math.min(speed * config.getMinecartSpeedMultiplier() * boost * blockBoost, maxSpeed);
         if (newSpeed > speed) {
             minecart.setVelocity(velocity.normalize().multiply(newSpeed));
         }
     }
 
     // -------------------------------------------------------------------------
-    // Helpers
+    // Shared attribute helper
     // -------------------------------------------------------------------------
 
     /**
-     * Applies a MULTIPLY_SCALAR_1 attribute modifier, replacing any existing
-     * modifier from this plugin to prevent speed stacking on repeated mounts.
+     * Applies a MULTIPLY_SCALAR_1 modifier, removing any pre-existing one with
+     * the same UUID first to prevent stacking on repeated mounts.
      */
-    private void applyModifier(AttributeInstance attr, UUID uuid, String name, double multiplier) {
+    public static void applyModifier(AttributeInstance attr, UUID uuid,
+                                     String name, double multiplier) {
         if (attr == null) return;
-
-        // Remove any existing modifier added by this plugin
         for (AttributeModifier mod : new ArrayList<>(attr.getModifiers())) {
-            if (mod.getUniqueId().equals(uuid)) {
-                attr.removeModifier(mod);
-            }
+            if (mod.getUniqueId().equals(uuid)) attr.removeModifier(mod);
         }
-
-        // MULTIPLY_SCALAR_1: finalValue = base + base * amount
-        // So amount = multiplier - 1 gives the desired total multiplier
-        attr.addModifier(new AttributeModifier(
-                uuid, name,
-                multiplier - 1.0,
-                AttributeModifier.Operation.MULTIPLY_SCALAR_1
-        ));
+        // MULTIPLY_SCALAR_1: finalValue = base + base * amount  →  amount = multiplier − 1
+        attr.addModifier(new AttributeModifier(uuid, name,
+                multiplier - 1.0, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
     }
 
     private boolean isMinecartTypeAllowed(Minecart minecart) {
-        if (minecart instanceof StorageMinecart) return config.isMinecartChest();
+        if (minecart instanceof StorageMinecart)  return config.isMinecartChest();
         if (minecart instanceof PoweredMinecart)  return config.isMinecartFurnace();
         if (minecart instanceof HopperMinecart)   return config.isMinecartHopper();
         if (minecart instanceof ExplosiveMinecart) return config.isMinecartTNT();

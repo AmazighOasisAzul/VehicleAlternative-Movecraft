@@ -3,7 +3,7 @@ version: '${project.version}'
 main: com.ryane.vehiclealternative.VehicleAlternative
 api-version: '1.20'
 author: Ryane
-description: A highly configurable vehicle speed modification plugin with boat climbing mechanics
+description: Configurable vehicle speed plugin with block-speed-boost and boat climbing
 website: https://github.com/AmazighOasisAzul/VehicleAlternative-Movecraft
 
 commands:
@@ -37,4 +37,7 @@ permissions:
     default: true
   vehiclealternative.use.camel:
     description: Use modified camel speeds
+    default: true
+  vehiclealternative.blockspeed:
+    description: Receive speed boost from configured surface blocks
     default: true
