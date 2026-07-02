@@ -4,14 +4,14 @@ main: com.ryane.vehiclealternative.VehicleAlternative
 api-version: '1.20'
 author: Ryane
 description: A highly configurable vehicle speed modification plugin with boat climbing mechanics
-website: https://github.com/ryane/VehicleAlternative
+website: https://github.com/AmazighOasisAzul/VehicleAlternative-Movecraft
 
 commands:
   vehiclealternative:
     description: Main plugin command
     aliases: [va, vehicle]
     permission: vehiclealternative.admin
-    usage: /<command> [reload|help]
+    usage: /<command> [reload|info|help]
 
 permissions:
   vehiclealternative.admin:
@@ -28,4 +28,13 @@ permissions:
     default: true
   vehiclealternative.use.minecart:
     description: Use modified minecart speeds
+    default: true
+  vehiclealternative.use.pig:
+    description: Use modified pig speeds
+    default: true
+  vehiclealternative.use.strider:
+    description: Use modified strider speeds
+    default: true
+  vehiclealternative.use.camel:
+    description: Use modified camel speeds
     default: true

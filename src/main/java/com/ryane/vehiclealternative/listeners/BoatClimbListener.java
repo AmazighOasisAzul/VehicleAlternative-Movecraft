@@ -2,10 +2,11 @@ package com.ryane.vehiclealternative.listeners;
 
 import com.ryane.vehiclealternative.VehicleAlternative;
 import com.ryane.vehiclealternative.config.ConfigManager;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -26,106 +27,97 @@ public class BoatClimbListener implements Listener {
 
     @EventHandler
     public void onBoatMove(VehicleMoveEvent event) {
-        if (!config.isEnabled() || !config.isBoatsEnabled() || !config.isBoatClimbingEnabled()) {
-            return;
-        }
-
-        if (!(event.getVehicle() instanceof Boat)) {
-            return;
-        }
+        if (!config.isEnabled() || !config.isBoatsEnabled() || !config.isBoatClimbingEnabled()) return;
+        if (!(event.getVehicle() instanceof Boat)) return;
 
         Boat boat = (Boat) event.getVehicle();
-        
-        // Check if player is driving
+
+        // Respect boats.types config
+        if (!config.getAllowedBoatTypes().contains(boat.getBoatType())) return;
+
         if (boat.getPassengers().isEmpty()) return;
         Entity passenger = boat.getPassengers().get(0);
         if (!(passenger instanceof Player)) return;
-        
         Player player = (Player) passenger;
-        if (config.isBoatRequirePermission() && !player.hasPermission("vehiclealternative.use.boat")) {
-            return;
-        }
+        if (config.isBoatRequirePermission() && !player.hasPermission("vehiclealternative.use.boat")) return;
 
-        Location from = event.getFrom();
-        Location to = event.getTo();
-        
-        // Check if boat is moving forward
         Vector velocity = boat.getVelocity();
-        if (velocity.length() < 0.1) return; // Too slow to climb
+        if (velocity.length() < 0.1) return;
 
-        // Get block ahead of boat
         Block currentBlock = boat.getLocation().getBlock();
-        Block blockAhead = getBlockAhead(boat, velocity);
-        Block blockAbove = currentBlock.getRelative(BlockFace.UP);
-        
+        Block blockAhead   = getBlockAhead(boat, velocity);
+
         Material currentMaterial = currentBlock.getType();
-        Material aheadMaterial = blockAhead.getType();
-        
-        boolean inWater = isWater(currentMaterial);
-        boolean onLand = !inWater && currentBlock.getRelative(BlockFace.DOWN).getType().isSolid();
-        
-        // Check if we should attempt climbing
+        Material aheadMaterial   = blockAhead.getType();
+
+        boolean inWater = isWaterOrWaterlogged(currentBlock);
+        boolean onLand  = !inWater && currentBlock.getRelative(BlockFace.DOWN).getType().isSolid();
+
         boolean shouldClimb = false;
-        
+
         if (inWater && config.isBoatClimbInWater()) {
-            // Climbing waterfalls or water blocks
-            if (isWater(aheadMaterial) && aheadMaterial != Material.AIR) {
+            // Boat is in water and the block ahead is also water (waterfall / water column)
+            if (isWaterOrWaterlogged(blockAhead)) {
                 shouldClimb = true;
             }
         }
-        
+
         if (onLand && config.isBoatClimbOnLand()) {
-            // Climbing on land
-            if (aheadMaterial.isSolid() && !aheadMaterial.equals(Material.BARRIER)) {
+            // Solid block ahead that isn't a barrier (invisible obstacle — not logical to climb)
+            if (aheadMaterial.isSolid() && aheadMaterial != Material.BARRIER) {
                 shouldClimb = true;
             }
         }
-        
+
         if (!shouldClimb) return;
-        
-        // Calculate climb height
+
         int climbHeight = calculateClimbHeight(blockAhead, config.getBoatMaxClimbHeight());
-        
         if (climbHeight > 0 && climbHeight <= config.getBoatMaxClimbHeight()) {
             performClimb(boat, climbHeight);
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
     private Block getBlockAhead(Boat boat, Vector velocity) {
         Vector direction = velocity.clone().normalize();
-        Location ahead = boat.getLocation().clone().add(direction.multiply(1.5));
-        return ahead.getBlock();
+        return boat.getLocation().clone().add(direction.multiply(1.5)).getBlock();
     }
 
-    private boolean isWater(Material material) {
-        return material == Material.WATER || material == Material.BUBBLE_COLUMN;
+    /**
+     * Returns true if the block is WATER, BUBBLE_COLUMN, or any waterlogged block.
+     * Fixes the original check that missed waterlogged slabs/stairs/etc. (1.20.1+).
+     */
+    private boolean isWaterOrWaterlogged(Block block) {
+        Material m = block.getType();
+        if (m == Material.WATER || m == Material.BUBBLE_COLUMN) return true;
+        BlockData data = block.getBlockData();
+        return (data instanceof Waterlogged) && ((Waterlogged) data).isWaterlogged();
     }
 
+    /**
+     * Counts consecutive solid blocks going up from {@code baseBlock}.
+     * Returns 0 if the block at baseBlock is already clear.
+     */
     private int calculateClimbHeight(Block baseBlock, int maxHeight) {
         int height = 0;
-        Block checkBlock = baseBlock;
-        
-        // Count solid blocks going up
-        while (height < maxHeight && checkBlock.getType().isSolid()) {
+        Block check = baseBlock;
+        while (height < maxHeight && check.getType().isSolid()) {
             height++;
-            checkBlock = checkBlock.getRelative(BlockFace.UP);
+            check = check.getRelative(BlockFace.UP);
         }
-        
         return height;
     }
 
     private void performClimb(Boat boat, int height) {
-        double climbSpeed = config.getBoatClimbSpeed();
         Vector velocity = boat.getVelocity();
-        
-        // Add upward velocity based on climb speed
-        velocity.setY(climbSpeed * height * 0.5);
-        
-        // Keep forward momentum
+        velocity.setY(config.getBoatClimbSpeed() * height * 0.5);
         boat.setVelocity(velocity);
-        
+
         if (config.isDebug()) {
-            plugin.getLogger().info("Boat climbing " + height + " blocks");
+            plugin.getLogger().info("Boat climbing " + height + " block(s)");
         }
     }
 }

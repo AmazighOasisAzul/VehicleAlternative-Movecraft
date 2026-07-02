@@ -1,7 +1,8 @@
 package com.ryane.vehiclealternative.commands;
 
 import com.ryane.vehiclealternative.VehicleAlternative;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,6 +15,8 @@ import java.util.List;
 public class MainCommand implements CommandExecutor, TabCompleter {
 
     private final VehicleAlternative plugin;
+    private static final LegacyComponentSerializer LEGACY =
+            LegacyComponentSerializer.legacyAmpersand();
 
     public MainCommand(VehicleAlternative plugin) {
         this.plugin = plugin;
@@ -26,30 +29,25 @@ public class MainCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        String subCommand = args[0].toLowerCase();
-
-        switch (subCommand) {
+        switch (args[0].toLowerCase()) {
             case "reload":
                 if (!sender.hasPermission("vehiclealternative.admin")) {
-                    sender.sendMessage(colorize(plugin.getConfigManager().getPrefix() + 
-                        plugin.getConfigManager().getNoPermission()));
+                    send(sender, plugin.getConfigManager().getPrefix()
+                            + plugin.getConfigManager().getNoPermission());
                     return true;
                 }
                 plugin.reload();
-                sender.sendMessage(colorize(plugin.getConfigManager().getPrefix() + 
-                    plugin.getConfigManager().getReloadSuccess()));
-                return true;
-
-            case "help":
-                sendHelp(sender);
+                send(sender, plugin.getConfigManager().getPrefix()
+                        + plugin.getConfigManager().getReloadSuccess());
                 return true;
 
             case "info":
             case "version":
-                sender.sendMessage(colorize(plugin.getConfigManager().getPrefix() + 
-                    plugin.getConfigManager().getPluginInfo()));
+                send(sender, plugin.getConfigManager().getPrefix()
+                        + plugin.getConfigManager().getPluginInfo());
                 return true;
 
+            case "help":
             default:
                 sendHelp(sender);
                 return true;
@@ -57,36 +55,32 @@ public class MainCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(colorize("&8&m                                          "));
-        sender.sendMessage(colorize("&b&lVehicleAlternative &7- Commands"));
-        sender.sendMessage(colorize("&8&m                                          "));
-        sender.sendMessage(colorize("&b/va help &8- &7Show this help menu"));
-        sender.sendMessage(colorize("&b/va info &8- &7Show plugin information"));
-        sender.sendMessage(colorize("&b/va reload &8- &7Reload configuration"));
-        sender.sendMessage(colorize("&8&m                                          "));
+        send(sender, "&8&m                                          ");
+        send(sender, "&b&lVehicleAlternative &7- Commands");
+        send(sender, "&8&m                                          ");
+        send(sender, "&b/va help &8- &7Show this help menu");
+        send(sender, "&b/va info &8- &7Show plugin information");
+        send(sender, "&b/va reload &8- &7Reload configuration");
+        send(sender, "&8&m                                          ");
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
-
         if (args.length == 1) {
-            List<String> subCommands = Arrays.asList("help", "info", "version", "reload");
             String input = args[0].toLowerCase();
-            for (String sub : subCommands) {
+            for (String sub : Arrays.asList("help", "info", "version", "reload")) {
                 if (sub.startsWith(input)) {
-                    if (sub.equals("reload") && !sender.hasPermission("vehiclealternative.admin")) {
-                        continue;
-                    }
+                    if (sub.equals("reload") && !sender.hasPermission("vehiclealternative.admin")) continue;
                     completions.add(sub);
                 }
             }
         }
-
         return completions;
     }
 
-    private String colorize(String message) {
-        return ChatColor.translateAlternateColorCodes('&', message);
+    private void send(CommandSender sender, String message) {
+        Component component = LEGACY.deserialize(message);
+        sender.sendMessage(component);
     }
 }
