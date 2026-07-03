@@ -4,6 +4,8 @@ import com.ryane.vehiclealternative.commands.MainCommand;
 import com.ryane.vehiclealternative.config.ConfigManager;
 import com.ryane.vehiclealternative.listeners.BlockSpeedListener;
 import com.ryane.vehiclealternative.listeners.BoatClimbListener;
+import com.ryane.vehiclealternative.listeners.ElytraListener;
+import com.ryane.vehiclealternative.listeners.EnderPearlListener;
 import com.ryane.vehiclealternative.listeners.VehicleSpeedListener;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -25,6 +27,9 @@ public class VehicleAlternative extends JavaPlugin {
     private ConfigManager      configManager;
     private BlockSpeedListener blockSpeedListener;
     private BukkitTask         blockSpeedTask;
+    private ElytraListener     elytraListener;
+    private BukkitTask         elytraTask;
+    private int                elytraTick = 0;
 
     @Override
     public void onEnable() {
@@ -37,14 +42,16 @@ public class VehicleAlternative extends JavaPlugin {
         // Listeners
         VehicleSpeedListener vehicleSpeedListener = new VehicleSpeedListener(this);
         blockSpeedListener = new BlockSpeedListener(this);
+        elytraListener     = new ElytraListener(this);
         getServer().getPluginManager().registerEvents(vehicleSpeedListener, this);
         getServer().getPluginManager().registerEvents(new BoatClimbListener(this), this);
         getServer().getPluginManager().registerEvents(blockSpeedListener, this);
+        getServer().getPluginManager().registerEvents(new EnderPearlListener(this), this);
+        getServer().getPluginManager().registerEvents(elytraListener, this);
 
-        // Scheduled task: update block-speed boost for rideable mobs (horses,
-        // pigs, camels, striders) — these use AttributeModifier instead of
-        // velocity and need periodic re-evaluation when the entity changes block.
+        // Scheduled tasks
         startBlockSpeedTask();
+        startElytraTask();
 
         // Commands
         PluginCommand cmd = getCommand("vehiclealternative");
@@ -64,6 +71,7 @@ public class VehicleAlternative extends JavaPlugin {
     @Override
     public void onDisable() {
         if (blockSpeedTask != null) blockSpeedTask.cancel();
+        if (elytraTask     != null) elytraTask.cancel();
         removeAllModifiers();
         if (blockSpeedListener != null) {
             for (Player p : Bukkit.getOnlinePlayers()) {
@@ -80,6 +88,25 @@ public class VehicleAlternative extends JavaPlugin {
     private void startBlockSpeedTask() {
         long interval = Math.max(1L, configManager.getUpdateInterval());
         blockSpeedTask = Bukkit.getScheduler().runTaskTimer(this, this::tickRideableMobBlockSpeed, 0L, interval);
+    }
+
+    // -------------------------------------------------------------------------
+    // Elytra scheduled task (speed + durability)
+    // -------------------------------------------------------------------------
+
+    private void startElytraTask() {
+        if (elytraTask != null) elytraTask.cancel();
+        elytraTick = 0;
+        // Runs every 5 ticks; durability subtick fires every 4th call (= 20 ticks / 1 s).
+        elytraTask = Bukkit.getScheduler().runTaskTimer(this, () -> {
+            if (elytraListener == null) return;
+            elytraTick++;
+            boolean durabilityTick = (elytraTick % 4 == 0);
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                elytraListener.tickSpeed(p);
+                if (durabilityTick) elytraListener.tickDurability(p);
+            }
+        }, 0L, 5L);
     }
 
     /**
@@ -173,9 +200,9 @@ public class VehicleAlternative extends JavaPlugin {
     public void reload() {
         reloadConfig();
         configManager.loadConfig();
-        // Restart the scheduler so the new update-interval takes effect immediately
         if (blockSpeedTask != null) blockSpeedTask.cancel();
         startBlockSpeedTask();
+        startElytraTask();
         getLogger().info("Configuration reloaded. Block-speed tracks "
                 + configManager.getBlockSpeedBlocks().size() + " block type(s).");
     }

@@ -41,3 +41,9 @@ permissions:
   vehiclealternative.blockspeed:
     description: Receive speed boost from configured surface blocks
     default: true
+  vehiclealternative.enderpearl:
+    description: Subject to ender-pearl restrict/cooldown settings
+    default: true
+  vehiclealternative.elytra:
+    description: Subject to elytra speed, durability, and firework settings
+    default: true

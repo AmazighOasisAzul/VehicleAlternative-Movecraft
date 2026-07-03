@@ -68,6 +68,20 @@ public class ConfigManager {
     private double  camelSpeedMultiplier;
     private boolean camelRequirePermission;
 
+    // Ender pearl
+    private boolean enderPearlsEnabled;
+    private boolean enderPearlDisable;
+    private int     enderPearlCooldown;
+    private boolean enderPearlRequirePermission;
+
+    // Elytra
+    private boolean elytraEnabled;
+    private double  elytraSpeedMultiplier;
+    private double  elytraDurabilityMultiplier;
+    private boolean elytraDisableFireworks;
+    private double  elytraFireworkSpeedMultiplier;
+    private boolean elytraRequirePermission;
+
     // Block speed boost
     private boolean        blockSpeedBoostEnabled;
     private boolean        blockSpeedApplyToPlayers;
@@ -156,6 +170,20 @@ public class ConfigManager {
         camelsEnabled          = cfg.getBoolean("camels.enabled", true);
         camelSpeedMultiplier   = cfg.getDouble("camels.speed-multiplier", 1.3);
         camelRequirePermission = cfg.getBoolean("camels.require-permission", false);
+
+        // Ender pearl
+        enderPearlsEnabled          = cfg.getBoolean("ender-pearls.enabled", true);
+        enderPearlDisable           = cfg.getBoolean("ender-pearls.disable", false);
+        enderPearlCooldown          = cfg.getInt("ender-pearls.cooldown", 0);
+        enderPearlRequirePermission = cfg.getBoolean("ender-pearls.require-permission", false);
+
+        // Elytra
+        elytraEnabled                = cfg.getBoolean("elytra.enabled", true);
+        elytraSpeedMultiplier        = cfg.getDouble("elytra.speed-multiplier", 1.0);
+        elytraDurabilityMultiplier   = cfg.getDouble("elytra.durability-multiplier", 1.0);
+        elytraDisableFireworks       = cfg.getBoolean("elytra.disable-fireworks", false);
+        elytraFireworkSpeedMultiplier= cfg.getDouble("elytra.firework-speed-multiplier", 1.0);
+        elytraRequirePermission      = cfg.getBoolean("elytra.require-permission", false);
 
         // Block speed boost config
         blockSpeedBoostEnabled     = cfg.getBoolean("block-speed-boost-config.enabled", true);
@@ -248,6 +276,18 @@ public class ConfigManager {
     public boolean isCamelsEnabled()           { return camelsEnabled; }
     public double  getCamelSpeedMultiplier()   { return camelSpeedMultiplier; }
     public boolean isCamelRequirePermission()  { return camelRequirePermission; }
+
+    public boolean isEnderPearlsEnabled()          { return enderPearlsEnabled; }
+    public boolean isEnderPearlDisable()           { return enderPearlDisable; }
+    public int     getEnderPearlCooldown()         { return enderPearlCooldown; }
+    public boolean isEnderPearlRequirePermission() { return enderPearlRequirePermission; }
+
+    public boolean isElytraEnabled()                  { return elytraEnabled; }
+    public double  getElytraSpeedMultiplier()         { return elytraSpeedMultiplier; }
+    public double  getElytraDurabilityMultiplier()    { return elytraDurabilityMultiplier; }
+    public boolean isElytraDisableFireworks()         { return elytraDisableFireworks; }
+    public double  getElytraFireworkSpeedMultiplier() { return elytraFireworkSpeedMultiplier; }
+    public boolean isElytraRequirePermission()        { return elytraRequirePermission; }
 
     public boolean       isBlockSpeedBoostEnabled()      { return blockSpeedBoostEnabled; }
     public boolean       isBlockSpeedApplyToPlayers()    { return blockSpeedApplyToPlayers; }
