@@ -71,7 +71,16 @@ public class BoatClimbListener implements Listener {
 
         if (!shouldClimb) return;
 
-        int climbHeight = calculateClimbHeight(blockAhead, config.getBoatMaxClimbHeight());
+        // Water climbing: there is no solid wall to measure — apply a fixed 1-unit
+        // upward push so the boat can navigate upstream / up a waterfall.
+        // Land climbing: count consecutive solid blocks to scale the Y boost.
+        int climbHeight;
+        if (inWater) {
+            climbHeight = 1;
+        } else {
+            climbHeight = calculateClimbHeight(blockAhead, config.getBoatMaxClimbHeight());
+        }
+
         if (climbHeight > 0 && climbHeight <= config.getBoatMaxClimbHeight()) {
             performClimb(boat, climbHeight);
         }

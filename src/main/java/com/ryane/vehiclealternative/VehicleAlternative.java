@@ -86,6 +86,7 @@ public class VehicleAlternative extends JavaPlugin {
     // -------------------------------------------------------------------------
 
     private void startBlockSpeedTask() {
+        if (blockSpeedTask != null) blockSpeedTask.cancel();
         long interval = Math.max(1L, configManager.getUpdateInterval());
         blockSpeedTask = Bukkit.getScheduler().runTaskTimer(this, this::tickRideableMobBlockSpeed, 0L, interval);
     }
