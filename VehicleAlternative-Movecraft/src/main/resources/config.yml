@@ -97,7 +97,7 @@ camels:
   require-permission: false
 
 # =====================
-# Block Speed Boost
+# Block Speed Boost Config
 # =====================
 # Certain surface blocks can grant a speed boost to players and vehicles
 # traveling over them. Works for players on foot, boats, minecarts, horses,
@@ -108,7 +108,7 @@ camels:
 # Example — to add a block simply append a new line:
 #   - IRON_BLOCK
 #
-block-speed-boost:
+block-speed-boost-config:
   enabled: true
 
   # Apply boost to players walking on foot

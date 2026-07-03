@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 /**
  * Applies a configurable speed boost to players walking on foot over any block
- * listed under {@code block-speed-boost.blocks} in config.yml.
+ * listed under {@code block-speed-boost-config.blocks} in config.yml.
  *
  * Vehicle block-speed is handled inside {@link VehicleSpeedListener} (boats /
  * minecarts via velocity) and the scheduled task in {@link VehicleAlternative}

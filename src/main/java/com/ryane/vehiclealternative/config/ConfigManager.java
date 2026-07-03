@@ -157,15 +157,15 @@ public class ConfigManager {
         camelSpeedMultiplier   = cfg.getDouble("camels.speed-multiplier", 1.3);
         camelRequirePermission = cfg.getBoolean("camels.require-permission", false);
 
-        // Block speed boost
-        blockSpeedBoostEnabled     = cfg.getBoolean("block-speed-boost.enabled", true);
-        blockSpeedApplyToPlayers   = cfg.getBoolean("block-speed-boost.apply-to-players", true);
-        blockSpeedApplyToVehicles  = cfg.getBoolean("block-speed-boost.apply-to-vehicles", true);
-        blockSpeedMultiplier       = cfg.getDouble("block-speed-boost.multiplier", 1.5);
-        blockSpeedRequirePermission= cfg.getBoolean("block-speed-boost.require-permission", false);
+        // Block speed boost config
+        blockSpeedBoostEnabled     = cfg.getBoolean("block-speed-boost-config.enabled", true);
+        blockSpeedApplyToPlayers   = cfg.getBoolean("block-speed-boost-config.apply-to-players", true);
+        blockSpeedApplyToVehicles  = cfg.getBoolean("block-speed-boost-config.apply-to-vehicles", true);
+        blockSpeedMultiplier       = cfg.getDouble("block-speed-boost-config.multiplier", 1.5);
+        blockSpeedRequirePermission= cfg.getBoolean("block-speed-boost-config.require-permission", false);
 
         blockSpeedBlocks = EnumSet.noneOf(Material.class);
-        List<String> blockNames = cfg.getStringList("block-speed-boost.blocks");
+        List<String> blockNames = cfg.getStringList("block-speed-boost-config.blocks");
         for (String name : blockNames) {
             try {
                 blockSpeedBlocks.add(Material.valueOf(name.trim().toUpperCase()));

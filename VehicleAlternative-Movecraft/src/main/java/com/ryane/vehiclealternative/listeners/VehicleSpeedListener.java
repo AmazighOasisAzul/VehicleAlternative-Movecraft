@@ -173,15 +173,16 @@ public class VehicleSpeedListener implements Listener {
             return;
         }
 
-        // Block-speed-boost stacks on top of the terrain multiplier
+        // Block-speed-boost stacks on top of the terrain multiplier.
+        // Check the block BELOW the boat's location — that is the surface block
+        // the boat is riding on (ice, dirt path, etc.).  The block the boat is
+        // currently IN (blockType — water/air) is never a speed block.
         if (config.isBlockSpeedBoostEnabled() && config.isBlockSpeedApplyToVehicles()) {
-            if (config.isBlockSpeedRequirePermission()
-                    && !player.hasPermission("vehiclealternative.blockspeed")) {
-                // no extra boost
-            } else {
+            boolean hasPerm = !config.isBlockSpeedRequirePermission()
+                    || player.hasPermission("vehiclealternative.blockspeed");
+            if (hasPerm) {
                 Block below = boat.getLocation().getBlock().getRelative(BlockFace.DOWN);
-                if (config.getBlockSpeedBlocks().contains(blockType)
-                        || config.getBlockSpeedBlocks().contains(below.getType())) {
+                if (config.getBlockSpeedBlocks().contains(below.getType())) {
                     multiplier *= config.getBlockSpeedMultiplier();
                 }
             }

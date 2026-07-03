@@ -138,6 +138,8 @@ public class VehicleAlternative extends JavaPlugin {
     /** Strips all VehicleAlternative modifiers from every loaded entity on disable. */
     private void removeAllModifiers() {
         for (World world : Bukkit.getWorlds()) {
+            // AbstractHorse covers Horse, Donkey, Mule, Camel, SkeletonHorse, ZombieHorse
+            // in 1.20.1 — no separate Camel loop needed.
             for (AbstractHorse horse : world.getEntitiesByClass(AbstractHorse.class)) {
                 stripModifier(horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED), VehicleConstants.SPEED_MODIFIER_UUID);
                 stripModifier(horse.getAttribute(Attribute.HORSE_JUMP_STRENGTH),    VehicleConstants.JUMP_MODIFIER_UUID);
@@ -150,10 +152,6 @@ public class VehicleAlternative extends JavaPlugin {
             for (Strider strider : world.getEntitiesByClass(Strider.class)) {
                 stripModifier(strider.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED), VehicleConstants.SPEED_MODIFIER_UUID);
                 stripModifier(strider.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED), VehicleConstants.BLOCK_SPEED_MODIFIER_UUID);
-            }
-            for (Camel camel : world.getEntitiesByClass(Camel.class)) {
-                stripModifier(camel.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED), VehicleConstants.SPEED_MODIFIER_UUID);
-                stripModifier(camel.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED), VehicleConstants.BLOCK_SPEED_MODIFIER_UUID);
             }
         }
     }
